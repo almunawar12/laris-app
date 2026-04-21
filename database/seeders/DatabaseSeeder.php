@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
 
         // 5 user kasir
         $cashiers = \App\Models\User::factory(5)->create([
-            'role' => 'cashier',
+            'role' => 'kasir',
         ]);
 
         // 5 kategori

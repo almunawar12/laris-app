@@ -6,30 +6,25 @@ use App\Models\Transaction;
 use App\Http\Requests\StoreTransactionRequest;
 use App\Http\Requests\UpdateTransactionRequest;
 
+use Inertia\Inertia;
+use Illuminate\Http\Request;
+
 class TransactionController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
-    }
+        $query = Transaction::with(['customer', 'user', 'transactionItems.product']);
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        if ($request->user()->role === 'kasir') {
+            $query->where('user_id', $request->user()->id);
+        }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreTransactionRequest $request)
-    {
-        //
+        return Inertia::render('Transactions/Index', [
+            'transactions' => $query->latest()->get(),
+        ]);
     }
 
     /**
@@ -37,7 +32,11 @@ class TransactionController extends Controller
      */
     public function show(Transaction $transaction)
     {
-        //
+        $transaction->load(['customer', 'user', 'transactionItems.product']);
+
+        return Inertia::render('Transactions/Show', [
+            'transaction' => $transaction,
+        ]);
     }
 
     /**

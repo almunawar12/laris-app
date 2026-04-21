@@ -15,12 +15,19 @@ class TransactionService
     public function checkout(array $data)
     {
         return DB::transaction(function () use ($data) {
+            $totalPrice = 0;
+            foreach ($data['items'] as $item) {
+                $totalPrice += $item['quantity'] * $item['price'];
+            }
+
             $transaction = Transaction::create([
+                'invoice_code' => 'INV-' . strtoupper(uniqid()),
                 'customer_id' => $data['customer_id'] ?? null,
                 'user_id' => auth()->id(),
-                'total_price' => $data['total_price'],
-                'paid_amount' => $data['paid_amount'],
-                'change_amount' => $data['change_amount'],
+                'total_price' => $totalPrice,
+                'total_paid' => $data['paid_amount'],
+                'change' => $data['paid_amount'] - $totalPrice,
+                'payment_method' => $data['payment_method'] ?? 'cash',
                 'transaction_date' => now(),
             ]);
 
@@ -28,11 +35,11 @@ class TransactionService
                 $product = Product::findOrFail($item['product_id']);
 
                 // Create Transaction Item
-                $transaction->items()->create([
+                $transaction->transactionItems()->create([
                     'product_id' => $product->id,
                     'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
-                    'subtotal' => $item['quantity'] * $item['unit_price'],
+                    'price' => $item['price'],
+                    'subtotal' => $item['quantity'] * $item['price'],
                 ]);
 
                 // Update Stock
@@ -44,7 +51,7 @@ class TransactionService
                     'user_id' => auth()->id(),
                     'type' => 'out',
                     'quantity' => $item['quantity'],
-                    'description' => "Penjualan Transaksi #{$transaction->id}",
+                    'description' => "Penjualan Transaksi #{$transaction->invoice_code}",
                 ]);
             }
 

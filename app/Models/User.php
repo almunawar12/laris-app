@@ -25,12 +25,19 @@ class User extends Authenticatable
         'role',
     ];
 
-    /**
-     * Get the transactions for the user.
-     */
     public function transactions()
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return strtolower($this->role ?? '') === 'admin';
+    }
+
+    public function isCashier(): bool
+    {
+        return strtolower($this->role ?? '') === 'kasir';
     }
 
     /**

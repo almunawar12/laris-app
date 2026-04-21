@@ -2,52 +2,53 @@ import React, { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, router } from "@inertiajs/react";
 import Modal from "@/Components/Modal";
-import CategoryForm from "@/Components/Organisms/CategoryForm";
+import CustomerForm from "@/Components/Organisms/CustomerForm";
 import { toast } from "sonner";
 
-export default function CategoryIndex({ auth, categories }) {
+export default function CustomerIndex({ auth, customers }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
 
     const openCreateModal = () => {
-        setSelectedCategory(null);
+        setSelectedCustomer(null);
         setIsModalOpen(true);
     };
 
-    const openEditModal = (category) => {
-        setSelectedCategory(category);
+    const openEditModal = (customer) => {
+        setSelectedCustomer(customer);
         setIsModalOpen(true);
     };
 
-    const deleteCategory = (id) => {
-        if (confirm("Apakah Anda yakin ingin menghapus kategori ini? Semua produk dalam kategori ini mungkin akan terpengaruh.")) {
-            router.delete(route("categories.destroy", id), {
-                onSuccess: () => toast.success("Kategori berhasil dihapus"),
+    const deleteCustomer = (id) => {
+        if (confirm("Apakah Anda yakin ingin menghapus pelanggan ini?")) {
+            router.delete(route("customers.destroy", id), {
+                onSuccess: () => toast.success("Pelanggan berhasil dihapus"),
             });
         }
     };
 
-    const filteredCategories = categories.filter((cat) =>
-        cat.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredCustomers = customers.filter((customer) =>
+        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (customer.phone && customer.phone.includes(searchTerm))
     );
 
     return (
         <AuthenticatedLayout user={auth.user}>
-            <Head title="Master Kategori" />
+            <Head title="Manajemen Pelanggan" />
 
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="space-y-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-black text-slate-800">Master Kategori</h1>
-                        <p className="text-sm text-slate-500">Kelola kategori produk untuk pengelompokan yang lebih baik.</p>
+                        <h1 className="text-2xl font-black text-slate-800">Manajemen Pelanggan</h1>
+                        <p className="text-sm text-slate-500">Kelola daftar pelanggan tetap toko Anda.</p>
                     </div>
                     <button
                         onClick={openCreateModal}
                         className="flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-lg shadow-primary-600/20 transition-all active:scale-95"
                     >
-                        <span className="material-symbols-outlined">category</span>
-                        Tambah Kategori
+                        <span className="material-symbols-outlined">add_reaction</span>
+                        Tambah Pelanggan
                     </button>
                 </div>
 
@@ -59,14 +60,14 @@ export default function CategoryIndex({ auth, categories }) {
                             </span>
                             <input
                                 type="text"
-                                placeholder="Cari nama kategori..."
+                                placeholder="Cari nama atau telepon..."
                                 className="w-full pl-10 pr-4 py-2 text-sm border-slate-200 rounded-xl focus:ring-primary-500 focus:border-primary-500"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
                         <div className="text-xs font-medium text-slate-500">
-                            Total: <span className="text-slate-900 font-bold">{filteredCategories.length}</span> Kategori
+                            Total: <span className="text-slate-900 font-bold">{filteredCustomers.length}</span> Pelanggan
                         </div>
                     </div>
 
@@ -74,25 +75,32 @@ export default function CategoryIndex({ auth, categories }) {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-wider">
-                                    <th className="px-6 py-4">Nama Kategori</th>
-                                    <th className="px-6 py-4">Dibuat Pada</th>
+                                    <th className="px-6 py-4">Pelanggan</th>
+                                    <th className="px-6 py-4">No. Telepon</th>
+                                    <th className="px-6 py-4">Tgl Daftar</th>
                                     <th className="px-6 py-4 text-right">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {filteredCategories.length > 0 ? (
-                                    filteredCategories.map((cat) => (
-                                        <tr key={cat.id} className="hover:bg-slate-50/80 transition-colors group">
+                                {filteredCustomers.length > 0 ? (
+                                    filteredCustomers.map((customer) => (
+                                        <tr key={customer.id} className="hover:bg-slate-50/80 transition-colors group">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
-                                                        <span className="material-symbols-outlined text-lg">label</span>
+                                                    <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
+                                                        <span className="material-symbols-outlined text-xl">person</span>
                                                     </div>
-                                                    <p className="text-sm font-bold text-slate-800">{cat.name}</p>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-slate-800">{customer.name}</p>
+                                                        <p className="text-[10px] text-slate-400">ID: #{customer.id}</p>
+                                                    </div>
                                                 </div>
                                             </td>
+                                            <td className="px-6 py-4 text-sm text-slate-600 font-mono">
+                                                {customer.phone || "-"}
+                                            </td>
                                             <td className="px-6 py-4 text-sm text-slate-500 font-medium">
-                                                {new Date(cat.created_at).toLocaleDateString("id-ID", {
+                                                {new Date(customer.created_at).toLocaleDateString("id-ID", {
                                                     day: "numeric",
                                                     month: "short",
                                                     year: "numeric"
@@ -101,14 +109,14 @@ export default function CategoryIndex({ auth, categories }) {
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <button
-                                                        onClick={() => openEditModal(cat)}
+                                                        onClick={() => openEditModal(customer)}
                                                         className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                                                         title="Edit"
                                                     >
                                                         <span className="material-symbols-outlined text-xl">edit</span>
                                                     </button>
                                                     <button
-                                                        onClick={() => deleteCategory(cat.id)}
+                                                        onClick={() => deleteCustomer(customer.id)}
                                                         className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                                         title="Hapus"
                                                     >
@@ -120,10 +128,10 @@ export default function CategoryIndex({ auth, categories }) {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="3" className="px-6 py-12 text-center text-slate-400">
+                                        <td colSpan="4" className="px-6 py-12 text-center text-slate-400">
                                             <div className="flex flex-col items-center gap-2">
-                                                <span className="material-symbols-outlined text-4xl opacity-20">inventory</span>
-                                                <p className="text-sm font-medium">Belum ada kategori yang ditemukan.</p>
+                                                <span className="material-symbols-outlined text-4xl opacity-20">person_off</span>
+                                                <p className="text-sm font-medium">Belum ada pelanggan yang ditemukan.</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -135,8 +143,8 @@ export default function CategoryIndex({ auth, categories }) {
             </div>
 
             <Modal show={isModalOpen} onClose={() => setIsModalOpen(false)} maxWidth="md">
-                <CategoryForm 
-                    category={selectedCategory} 
+                <CustomerForm 
+                    customer={selectedCustomer} 
                     onClose={() => setIsModalOpen(false)} 
                 />
             </Modal>

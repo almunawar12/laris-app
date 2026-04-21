@@ -53,19 +53,37 @@ export default function Sidebar({
                 </div>
 
                 <nav className="flex flex-col gap-1 overflow-y-auto">
-                    <Link
-                        href={route("dashboard")}
-                        className={`font-semibold rounded-xl px-4 py-3 flex items-center gap-3 active:scale-95 transition-transform ${
-                            route().current("dashboard")
-                                ? "bg-primary-500 text-white shadow-lg shadow-primary-500/30"
-                                : "text-primary-800 hover:bg-primary-200"
-                        }`}
-                    >
-                        <span className="material-symbols-outlined text-xl">
-                            dashboard
-                        </span>
-                        <span className="text-sm">Dashboard</span>
-                    </Link>
+                    {user.role === "admin" && (
+                        <Link
+                            href={route("dashboard")}
+                            className={`font-semibold rounded-xl px-4 py-3 flex items-center gap-3 active:scale-95 transition-transform ${
+                                route().current("dashboard")
+                                    ? "bg-primary-500 text-white shadow-lg shadow-primary-500/30"
+                                    : "text-primary-800 hover:bg-primary-200"
+                            }`}
+                        >
+                            <span className="material-symbols-outlined text-xl">
+                                dashboard
+                            </span>
+                            <span className="text-sm">Dashboard</span>
+                        </Link>
+                    )}
+
+                    {user.role === "kasir" && (
+                        <Link
+                            href={route("pos.index")}
+                            className={`font-semibold rounded-xl px-4 py-3 flex items-center gap-3 active:scale-95 transition-transform ${
+                                route().current("pos.*")
+                                    ? "bg-primary-500 text-white shadow-lg shadow-primary-500/30"
+                                    : "text-primary-800 hover:bg-primary-200"
+                            }`}
+                        >
+                            <span className="material-symbols-outlined text-xl">
+                                point_of_sale
+                            </span>
+                            <span className="text-sm">Kasir / POS</span>
+                        </Link>
+                    )}
 
                     <Link
                         href={route("transactions.index")}
@@ -108,6 +126,38 @@ export default function Sidebar({
                         </span>
                         <span className="text-sm">Kategori</span>
                     </Link>
+
+                    {user.role === "admin" && (
+                        <>
+                            <Link
+                                href={route("users.index")}
+                                className={`font-medium px-4 py-3 flex items-center gap-3 rounded-xl transition-all duration-200 active:scale-95 ${
+                                    route().current("users.*")
+                                        ? "bg-primary-500 text-white shadow-lg shadow-primary-500/30"
+                                        : "text-primary-800 hover:bg-primary-200"
+                                }`}
+                            >
+                                <span className="material-symbols-outlined text-xl">
+                                    group
+                                </span>
+                                <span className="text-sm">Manajemen User</span>
+                            </Link>
+
+                            <Link
+                                href={route("customers.index")}
+                                className={`font-medium px-4 py-3 flex items-center gap-3 rounded-xl transition-all duration-200 active:scale-95 ${
+                                    route().current("customers.*")
+                                        ? "bg-primary-500 text-white shadow-lg shadow-primary-500/30"
+                                        : "text-primary-800 hover:bg-primary-200"
+                                }`}
+                            >
+                                <span className="material-symbols-outlined text-xl">
+                                    person
+                                </span>
+                                <span className="text-sm">Pelanggan</span>
+                            </Link>
+                        </>
+                    )}
                 </nav>
 
                 <div className="mt-auto p-4 bg-primary-50 rounded-2xl">

@@ -24,13 +24,12 @@ export default function Sidebar({
             >
                 <div className="flex items-center justify-between mb-8 px-2">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary-600/30">
-                            <span
-                                className="material-symbols-outlined"
-                                style={{ fontVariationSettings: "'FILL' 1" }}
-                            >
-                                storefront
-                            </span>
+                        <div className="w-10 h-10 overflow-hidden flex items-center justify-center">
+                            <img 
+                                src="/images/laris-logo-tranparent.png" 
+                                alt="Logo" 
+                                className="w-full h-full object-contain"
+                            />
                         </div>
                         <div>
                             <h1 className="font-black text-lg tracking-tight text-primary-800 leading-none">

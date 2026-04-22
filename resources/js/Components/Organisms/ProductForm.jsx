@@ -1,18 +1,23 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "@inertiajs/react";
 import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import PrimaryButton from "@/Components/PrimaryButton";
 import SecondaryButton from "@/Components/SecondaryButton";
+import SearchableSelect from "@/Components/SearchableSelect";
+import ConfirmationModal from "@/Components/Molecules/ConfirmationModal";
+import { toast } from "sonner";
 
-export default function ProductForm({ product = null, categories = [], onClose }) {
+ export default function ProductForm({ product = null, categories = [], onClose }) {
     const isEditing = !!product;
+    const [showConfirm, setShowConfirm] = useState(false);
 
     const { data, setData, post, patch, processing, errors, reset } = useForm({
         name: product?.name || "",
         description: product?.description || "",
         price: product?.price || "",
+        cost_price: product?.cost_price || "",
         stock: product?.stock || "",
         category_id: product?.category_id || "",
         sku: product?.sku || "",
@@ -24,6 +29,7 @@ export default function ProductForm({ product = null, categories = [], onClose }
                 name: product.name,
                 description: product.description || "",
                 price: product.price,
+                cost_price: product.cost_price,
                 stock: product.stock,
                 category_id: product.category_id,
                 sku: product.sku,
@@ -33,26 +39,44 @@ export default function ProductForm({ product = null, categories = [], onClose }
         }
     }, [product]);
 
-    const submit = (e) => {
+    const handleOpenConfirm = (e) => {
         e.preventDefault();
+        setShowConfirm(true);
+    };
+
+    const handleConfirm = () => {
+        setShowConfirm(false);
+        const toastId = isEditing ? "update-product" : "create-product";
+
         if (isEditing) {
             patch(route("products.update", product.id), {
+                onStart: () => toast.loading("Memperbarui produk...", { id: toastId }),
                 onSuccess: () => {
+                    toast.success("Produk berhasil diperbarui!", { id: toastId });
                     onClose();
                 },
+                onError: () => {
+                    toast.error("Gagal memperbarui produk. Periksa kembali form Anda.", { id: toastId });
+                }
             });
         } else {
             post(route("products.store"), {
+                onStart: () => toast.loading("Menyimpan produk...", { id: toastId }),
                 onSuccess: () => {
+                    toast.success("Produk berhasil ditambahkan!", { id: toastId });
                     reset();
                     onClose();
                 },
+                onError: () => {
+                    toast.error("Gagal menyimpan produk. Periksa kembali form Anda.", { id: toastId });
+                }
             });
         }
     };
 
     return (
-        <form onSubmit={submit} className="overflow-hidden bg-white rounded-3xl">
+        <>
+            <form onSubmit={handleOpenConfirm} className="overflow-hidden bg-white rounded-3xl">
             {/* Header with Gradient Accent */}
             <div className="relative p-6 pb-0">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary-500 to-indigo-500"></div>
@@ -108,20 +132,17 @@ export default function ProductForm({ product = null, categories = [], onClose }
                                     <span className="material-symbols-outlined text-lg text-indigo-500">category</span>
                                     Kategori
                                 </InputLabel>
-                                <select
+                                <SearchableSelect
                                     id="category_id"
-                                    className="mt-1 block w-full border-slate-200 bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-primary-500 rounded-xl shadow-sm transition-all text-sm font-medium"
+                                    className="mt-1"
+                                    options={categories.map((cat) => ({
+                                        value: cat.id,
+                                        label: cat.name,
+                                    }))}
                                     value={data.category_id}
-                                    onChange={(e) => setData("category_id", e.target.value)}
-                                    required
-                                >
-                                    <option value="">Pilih...</option>
-                                    {categories.map((cat) => (
-                                        <option key={cat.id} value={cat.id}>
-                                            {cat.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                    onChange={(val) => setData("category_id", val)}
+                                    placeholder="Cari kategori..."
+                                />
                                 <InputError message={errors.category_id} className="mt-2 text-[10px]" />
                             </div>
 
@@ -149,7 +170,7 @@ export default function ProductForm({ product = null, categories = [], onClose }
                             </InputLabel>
                             <textarea
                                 id="description"
-                                className="mt-1 block w-full border-slate-200 bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-primary-500 rounded-2xl shadow-sm transition-all min-h-[100px] text-sm"
+                                className="mt-1 block w-full border-slate-200 bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-primary-500 rounded-2xl shadow-sm transition-all min-h-[80px] text-sm"
                                 value={data.description}
                                 onChange={(e) => setData("description", e.target.value)}
                                 placeholder="Jelaskan detail produk..."
@@ -159,18 +180,38 @@ export default function ProductForm({ product = null, categories = [], onClose }
                     </div>
 
                     {/* Right Column: Pricing & Inventory */}
-                    <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-100 space-y-6">
-                        <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100 group transition-all hover:shadow-md">
-                            <InputLabel htmlFor="price" className="flex items-center gap-2 mb-2 text-slate-500 font-bold text-[10px] uppercase tracking-widest group-hover:text-primary-600 transition-colors">
+                    <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 space-y-4">
+                        <div className="p-3 bg-white rounded-xl shadow-sm border border-slate-100 group transition-all hover:shadow-md">
+                            <InputLabel htmlFor="cost_price" className="flex items-center gap-2 mb-1 text-slate-500 font-bold text-[10px] uppercase tracking-widest group-hover:text-primary-600 transition-colors">
+                                <span className="material-symbols-outlined text-lg">request_quote</span>
+                                Harga Modal
+                            </InputLabel>
+                            <div className="relative flex items-center">
+                                <span className="absolute left-0 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-lg select-none">Rp</span>
+                                <input
+                                    id="cost_price"
+                                    type="number"
+                                    className="w-full border-none p-0 pl-8 focus:ring-0 text-xl font-black text-slate-800 placeholder:text-slate-200"
+                                    value={data.cost_price}
+                                    onChange={(e) => setData("cost_price", e.target.value)}
+                                    placeholder="0"
+                                    required
+                                />
+                            </div>
+                            <InputError message={errors.cost_price} className="mt-1 text-[10px]" />
+                        </div>
+
+                        <div className="p-3 bg-white rounded-xl shadow-sm border border-slate-100 group transition-all hover:shadow-md">
+                            <InputLabel htmlFor="price" className="flex items-center gap-2 mb-1 text-slate-500 font-bold text-[10px] uppercase tracking-widest group-hover:text-primary-600 transition-colors">
                                 <span className="material-symbols-outlined text-lg">payments</span>
-                                Harga Jual (Rp)
+                                Harga Jual
                             </InputLabel>
                             <div className="relative flex items-center">
                                 <span className="absolute left-0 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-lg select-none">Rp</span>
                                 <input
                                     id="price"
                                     type="number"
-                                    className="w-full border-none p-0 pl-8 focus:ring-0 text-2xl font-black text-slate-800 placeholder:text-slate-200"
+                                    className="w-full border-none p-0 pl-8 focus:ring-0 text-xl font-black text-slate-800 placeholder:text-slate-200"
                                     value={data.price}
                                     onChange={(e) => setData("price", e.target.value)}
                                     placeholder="0"
@@ -180,8 +221,8 @@ export default function ProductForm({ product = null, categories = [], onClose }
                             <InputError message={errors.price} className="mt-1 text-[10px]" />
                         </div>
 
-                        <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100 group transition-all hover:shadow-md">
-                            <InputLabel htmlFor="stock" className="flex items-center gap-2 mb-2 text-slate-500 font-bold text-[10px] uppercase tracking-widest group-hover:text-primary-600 transition-colors">
+                        <div className="p-3 bg-white rounded-xl shadow-sm border border-slate-100 group transition-all hover:shadow-md">
+                            <InputLabel htmlFor="stock" className="flex items-center gap-2 mb-1 text-slate-500 font-bold text-[10px] uppercase tracking-widest group-hover:text-primary-600 transition-colors">
                                 <span className="material-symbols-outlined text-lg">inventory</span>
                                 Level Stok
                             </InputLabel>
@@ -189,26 +230,21 @@ export default function ProductForm({ product = null, categories = [], onClose }
                                 <input
                                     id="stock"
                                     type="number"
-                                    className="w-full border-none p-0 focus:ring-0 text-2xl font-black text-slate-800 placeholder:text-slate-200"
+                                    className="w-full border-none p-0 focus:ring-0 text-xl font-black text-slate-800 placeholder:text-slate-200"
                                     value={data.stock}
                                     onChange={(e) => setData("stock", e.target.value)}
                                     placeholder="0"
                                     required
                                 />
-                                <div className={`hidden sm:block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${data.stock > 10 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                                    {data.stock > 10 ? 'Stok Aman' : 'Stok Menipis'}
+                                <div className={`hidden sm:block px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter ${data.stock > 10 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                    {data.stock > 10 ? 'Aman' : 'Tipis'}
                                 </div>
                             </div>
                             <InputError message={errors.stock} className="mt-1 text-[10px]" />
                         </div>
 
-                        <div className="pt-4 border-t border-slate-200/60">
-                            <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-xl border border-amber-100/50">
-                                <span className="material-symbols-outlined text-amber-500 text-xl shrink-0">info</span>
-                                <p className="text-[10px] text-amber-700 font-medium leading-relaxed">
-                                    Pastikan harga jual sudah termasuk pajak jika diperlukan. Stok awal akan dicatat sebagai penyesuaian inventori pertama.
-                                </p>
-                            </div>
+                        <div className="pt-2 border-t border-slate-200/60 font-medium text-[9px] text-amber-700 italic">
+                            * Pastikan harga jual sudah termasuk pajak.
                         </div>
                     </div>
                 </div>
@@ -236,6 +272,21 @@ export default function ProductForm({ product = null, categories = [], onClose }
                     </PrimaryButton>
                 </div>
             </div>
-        </form>
+            </form>
+
+            <ConfirmationModal
+                show={showConfirm}
+                onClose={() => setShowConfirm(false)}
+                onConfirm={handleConfirm}
+                title={isEditing ? "Update Produk?" : "Simpan Produk Baru?"}
+                message={isEditing 
+                    ? "Apakah Anda yakin ingin menyimpan perubahan pada produk ini?" 
+                    : "Apakah Anda yakin data produk yang dimasukkan sudah benar?"
+                }
+                type="info"
+                confirmLabel="Ya, Simpan"
+                cancelLabel="Batal"
+            />
+        </>
     );
 }

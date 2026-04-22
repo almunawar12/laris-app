@@ -3,12 +3,17 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, router } from "@inertiajs/react";
 import Modal from "@/Components/Modal";
 import CustomerForm from "@/Components/Organisms/CustomerForm";
+import Pagination from "@/Components/Pagination";
+import ConfirmationModal from "@/Components/Molecules/ConfirmationModal";
 import { toast } from "sonner";
+import { useCallback, useRef } from "react";
 
-export default function CustomerIndex({ auth, customers }) {
+export default function CustomerIndex({ auth, customers, filters }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState(null);
-    const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState(filters.search || "");
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
 
     const openCreateModal = () => {
         setSelectedCustomer(null);
@@ -20,18 +25,58 @@ export default function CustomerIndex({ auth, customers }) {
         setIsModalOpen(true);
     };
 
-    const deleteCustomer = (id) => {
-        if (confirm("Apakah Anda yakin ingin menghapus pelanggan ini?")) {
-            router.delete(route("customers.destroy", id), {
-                onSuccess: () => toast.success("Pelanggan berhasil dihapus"),
-            });
-        }
+    // Server-side search with debounce implementation
+    const debounceTimeout = useRef(null);
+
+    const handleSearch = (query) => {
+        if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+
+        debounceTimeout.current = setTimeout(() => {
+            router.get(
+                route("customers.index"),
+                { search: query, per_page: filters.per_page || 10 },
+                { preserveState: true, replace: true }
+            );
+        }, 500);
     };
 
-    const filteredCustomers = customers.filter((customer) =>
-        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (customer.phone && customer.phone.includes(searchTerm))
-    );
+    const onSearchChange = (e) => {
+        const value = e.target.value;
+        setSearchTerm(value);
+        handleSearch(value);
+    };
+
+    const onPerPageChange = (value) => {
+        router.get(
+            route("customers.index"),
+            { search: searchTerm, per_page: value },
+            { preserveState: true, replace: true }
+        );
+    };
+
+    const handleOpenDeleteConfirm = (id) => {
+        setDeleteId(id);
+        setShowDeleteConfirm(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (!deleteId) return;
+
+        router.delete(route("customers.destroy", deleteId), {
+            onStart: () => toast.loading("Menghapus pelanggan..."),
+            onSuccess: () => {
+                toast.success("Pelanggan berhasil dihapus");
+                setShowDeleteConfirm(false);
+                setDeleteId(null);
+            },
+            onError: () => {
+                toast.error("Gagal menghapus pelanggan.");
+                setShowDeleteConfirm(false);
+            },
+        });
+    };
+
+    const data = customers.data;
 
     return (
         <AuthenticatedLayout user={auth.user}>
@@ -63,11 +108,8 @@ export default function CustomerIndex({ auth, customers }) {
                                 placeholder="Cari nama atau telepon..."
                                 className="w-full pl-10 pr-4 py-2 text-sm border-slate-200 rounded-xl focus:ring-primary-500 focus:border-primary-500"
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={onSearchChange}
                             />
-                        </div>
-                        <div className="text-xs font-medium text-slate-500">
-                            Total: <span className="text-slate-900 font-bold">{filteredCustomers.length}</span> Pelanggan
                         </div>
                     </div>
 
@@ -82,8 +124,8 @@ export default function CustomerIndex({ auth, customers }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {filteredCustomers.length > 0 ? (
-                                    filteredCustomers.map((customer) => (
+                                {data.length > 0 ? (
+                                    data.map((customer) => (
                                         <tr key={customer.id} className="hover:bg-slate-50/80 transition-colors group">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
@@ -116,7 +158,7 @@ export default function CustomerIndex({ auth, customers }) {
                                                         <span className="material-symbols-outlined text-xl">edit</span>
                                                     </button>
                                                     <button
-                                                        onClick={() => deleteCustomer(customer.id)}
+                                                        onClick={() => handleOpenDeleteConfirm(customer.id)}
                                                         className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                                         title="Hapus"
                                                     >
@@ -139,6 +181,13 @@ export default function CustomerIndex({ auth, customers }) {
                             </tbody>
                         </table>
                     </div>
+
+                    <Pagination 
+                        links={customers.links} 
+                        total={customers.total}
+                        perPage={filters.per_page || 10}
+                        onPerPageChange={onPerPageChange}
+                    />
                 </div>
             </div>
 
@@ -148,6 +197,17 @@ export default function CustomerIndex({ auth, customers }) {
                     onClose={() => setIsModalOpen(false)} 
                 />
             </Modal>
+
+            <ConfirmationModal
+                show={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={handleConfirmDelete}
+                title="Hapus Pelanggan?"
+                message="Apakah Anda yakin ingin menghapus pelanggan ini? Tindakan ini tidak dapat dibatalkan."
+                type="danger"
+                confirmLabel="Ya, Hapus"
+                cancelLabel="Batal"
+            />
         </AuthenticatedLayout>
     );
 }

@@ -11,10 +11,21 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = $request->input('per_page', 10);
+        $query = Customer::query();
+
+        if ($request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('phone', 'like', '%' . $request->search . '%');
+            });
+        }
+
         return Inertia::render('Customers/Index', [
-            'customers' => Customer::latest()->get(),
+            'customers' => $query->latest()->paginate($perPage)->withQueryString(),
+            'filters' => $request->only(['search', 'per_page']),
         ]);
     }
 

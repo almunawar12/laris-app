@@ -15,11 +15,20 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = $request->input('per_page', 10);
+        $query = Product::query()->with('category');
+
+        if ($request->search) {
+            $query->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('sku', 'like', '%' . $request->search . '%');
+        }
+
         return Inertia::render('Products/Index', [
-            'products' => Product::with('category')->latest()->get(),
+            'products' => $query->latest()->paginate($perPage)->withQueryString(),
             'categories' => Category::all(),
+            'filters' => $request->only(['search', 'per_page']),
         ]);
     }
 
@@ -42,6 +51,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'cost_price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'category_id' => 'required|exists:categories,id',
             'sku' => 'required|string|unique:products',
@@ -72,6 +82,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'cost_price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'category_id' => 'required|exists:categories,id',
             'sku' => 'required|string|unique:products,sku,' . $product->id,

@@ -3,12 +3,17 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, router } from "@inertiajs/react";
 import Modal from "@/Components/Modal";
 import UserForm from "@/Components/Organisms/UserForm";
+import Pagination from "@/Components/Pagination";
+import ConfirmationModal from "@/Components/Molecules/ConfirmationModal";
 import { toast } from "sonner";
+import { useCallback, useRef } from "react";
 
-export default function UserIndex({ auth, users }) {
+export default function UserIndex({ auth, users, filters }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
-    const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState(filters.search || "");
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
 
     const openCreateModal = () => {
         setSelectedUser(null);
@@ -20,24 +25,62 @@ export default function UserIndex({ auth, users }) {
         setIsModalOpen(true);
     };
 
-    const deleteUser = (id) => {
+    // Server-side search with debounce implementation
+    const debounceTimeout = useRef(null);
+
+    const handleSearch = (query) => {
+        if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+
+        debounceTimeout.current = setTimeout(() => {
+            router.get(
+                route("users.index"),
+                { search: query },
+                { preserveState: true, replace: true }
+            );
+        }, 500);
+    };
+
+    const onSearchChange = (e) => {
+        const value = e.target.value;
+        setSearchTerm(value);
+        handleSearch(value);
+    };
+
+    const onPerPageChange = (value) => {
+        router.get(
+            route("users.index"),
+            { search: searchTerm, per_page: value },
+            { preserveState: true, replace: true }
+        );
+    };
+
+    const handleOpenDeleteConfirm = (id) => {
         if (id === auth.user.id) {
             toast.error("Anda tidak bisa menghapus akun Anda sendiri.");
             return;
         }
-
-        if (confirm("Apakah Anda yakin ingin menghapus user ini?")) {
-            router.delete(route("users.destroy", id), {
-                onSuccess: () => toast.success("User berhasil dihapus"),
-                onError: (e) => toast.error(e.error || "Gagal menghapus user"),
-            });
-        }
+        setDeleteId(id);
+        setShowDeleteConfirm(true);
     };
 
-    const filteredUsers = users.filter((user) =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const handleConfirmDelete = () => {
+        if (!deleteId) return;
+
+        router.delete(route("users.destroy", deleteId), {
+            onStart: () => toast.loading("Menghapus user..."),
+            onSuccess: () => {
+                toast.success("User berhasil dihapus");
+                setShowDeleteConfirm(false);
+                setDeleteId(null);
+            },
+            onError: (e) => {
+                toast.error(e.error || "Gagal menghapus user.");
+                setShowDeleteConfirm(false);
+            },
+        });
+    };
+
+    const data = users.data;
 
     return (
         <AuthenticatedLayout user={auth.user}>
@@ -69,11 +112,8 @@ export default function UserIndex({ auth, users }) {
                                 placeholder="Cari nama atau email..."
                                 className="w-full pl-10 pr-4 py-2 text-sm border-slate-200 rounded-xl focus:ring-primary-500 focus:border-primary-500"
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={onSearchChange}
                             />
-                        </div>
-                        <div className="text-xs font-medium text-slate-500">
-                            Total: <span className="text-slate-900 font-bold">{filteredUsers.length}</span> User
                         </div>
                     </div>
 
@@ -89,8 +129,8 @@ export default function UserIndex({ auth, users }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {filteredUsers.length > 0 ? (
-                                    filteredUsers.map((user) => (
+                                {data.length > 0 ? (
+                                    data.map((user) => (
                                         <tr key={user.id} className="hover:bg-slate-50/80 transition-colors group">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
@@ -135,7 +175,7 @@ export default function UserIndex({ auth, users }) {
                                                     </button>
                                                     {user.id !== auth.user.id && (
                                                         <button
-                                                            onClick={() => deleteUser(user.id)}
+                                                            onClick={() => handleOpenDeleteConfirm(user.id)}
                                                             className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                                             title="Hapus"
                                                         >
@@ -159,6 +199,13 @@ export default function UserIndex({ auth, users }) {
                             </tbody>
                         </table>
                     </div>
+
+                    <Pagination 
+                        links={users.links} 
+                        total={users.total}
+                        perPage={filters.per_page || 10}
+                        onPerPageChange={onPerPageChange}
+                    />
                 </div>
             </div>
 
@@ -168,6 +215,17 @@ export default function UserIndex({ auth, users }) {
                     onClose={() => setIsModalOpen(false)} 
                 />
             </Modal>
+
+            <ConfirmationModal
+                show={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={handleConfirmDelete}
+                title="Hapus User?"
+                message="Apakah Anda yakin ingin menghapus user ini? Tindakan ini tidak dapat dibatalkan."
+                type="danger"
+                confirmLabel="Ya, Hapus"
+                cancelLabel="Batal"
+            />
         </AuthenticatedLayout>
     );
 }

@@ -11,10 +11,18 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = $request->input('per_page', 10);
+        $query = Category::query();
+
+        if ($request->search) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
         return Inertia::render('Categories/Index', [
-            'categories' => Category::latest()->get(),
+            'categories' => $query->latest()->paginate($perPage)->withQueryString(),
+            'filters' => $request->only(['search', 'per_page']),
         ]);
     }
 

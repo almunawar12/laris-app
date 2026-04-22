@@ -3,12 +3,17 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, usePage, router } from "@inertiajs/react";
 import Modal from "@/Components/Modal";
 import ProductForm from "@/Components/Organisms/ProductForm";
+import Pagination from "@/Components/Pagination";
+import ConfirmationModal from "@/Components/Molecules/ConfirmationModal";
 import { toast } from "sonner";
+import { useEffect, useCallback, useRef } from "react";
 
-export default function ProductIndex({ auth, products, categories }) {
+export default function ProductIndex({ auth, products, categories, filters }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
-    const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState(filters.search || "");
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
 
     const openCreateModal = () => {
         setSelectedProduct(null);
@@ -20,18 +25,58 @@ export default function ProductIndex({ auth, products, categories }) {
         setIsModalOpen(true);
     };
 
-    const deleteProduct = (id) => {
-        if (confirm("Apakah Anda yakin ingin menghapus produk ini?")) {
-            router.delete(route("products.destroy", id), {
-                onSuccess: () => toast.success("Produk berhasil dihapus"),
-            });
-        }
+    // Server-side search with debounce implementation
+    const debounceTimeout = useRef(null);
+
+    const handleSearch = (query) => {
+        if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+
+        debounceTimeout.current = setTimeout(() => {
+            router.get(
+                route("products.index"),
+                { search: query },
+                { preserveState: true, replace: true }
+            );
+        }, 500);
     };
 
-    const filteredProducts = products.filter((product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.sku.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const onSearchChange = (e) => {
+        const value = e.target.value;
+        setSearchTerm(value);
+        handleSearch(value);
+    };
+
+    const onPerPageChange = (value) => {
+        router.get(
+            route("products.index"),
+            { search: searchTerm, per_page: value },
+            { preserveState: true, replace: true }
+        );
+    };
+
+    const handleOpenDeleteConfirm = (id) => {
+        setDeleteId(id);
+        setShowDeleteConfirm(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (!deleteId) return;
+
+        router.delete(route("products.destroy", deleteId), {
+            onStart: () => toast.loading("Menghapus produk..."),
+            onSuccess: () => {
+                toast.success("Produk berhasil dihapus");
+                setShowDeleteConfirm(false);
+                setDeleteId(null);
+            },
+            onError: () => {
+                toast.error("Gagal menghapus produk.");
+                setShowDeleteConfirm(false);
+            },
+        });
+    };
+
+    const data = products.data;
 
     return (
         <AuthenticatedLayout user={auth.user}>
@@ -63,11 +108,8 @@ export default function ProductIndex({ auth, products, categories }) {
                                 placeholder="Cari SKU atau nama..."
                                 className="w-full pl-10 pr-4 py-2 text-sm border-slate-200 rounded-xl focus:ring-primary-500 focus:border-primary-500"
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={onSearchChange}
                             />
-                        </div>
-                        <div className="text-xs font-medium text-slate-500">
-                            Total: <span className="text-slate-900 font-bold">{filteredProducts.length}</span> Produk
                         </div>
                     </div>
 
@@ -83,8 +125,8 @@ export default function ProductIndex({ auth, products, categories }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {filteredProducts.length > 0 ? (
-                                    filteredProducts.map((product) => (
+                                {data.length > 0 ? (
+                                    data.map((product) => (
                                         <tr key={product.id} className="hover:bg-slate-50/80 transition-colors group">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
@@ -126,7 +168,7 @@ export default function ProductIndex({ auth, products, categories }) {
                                                         <span className="material-symbols-outlined text-xl">edit</span>
                                                     </button>
                                                     <button
-                                                        onClick={() => deleteProduct(product.id)}
+                                                        onClick={() => handleOpenDeleteConfirm(product.id)}
                                                         className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                                         title="Hapus"
                                                     >
@@ -149,6 +191,13 @@ export default function ProductIndex({ auth, products, categories }) {
                             </tbody>
                         </table>
                     </div>
+
+                    <Pagination 
+                        links={products.links} 
+                        total={products.total}
+                        perPage={filters.per_page || 10}
+                        onPerPageChange={onPerPageChange}
+                    />
                 </div>
             </div>
 
@@ -159,6 +208,17 @@ export default function ProductIndex({ auth, products, categories }) {
                     onClose={() => setIsModalOpen(false)} 
                 />
             </Modal>
+
+            <ConfirmationModal
+                show={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={handleConfirmDelete}
+                title="Hapus Produk?"
+                message="Apakah Anda yakin ingin menghapus produk ini? Tindakan ini tidak dapat dibatalkan."
+                type="danger"
+                confirmLabel="Ya, Hapus"
+                cancelLabel="Batal"
+            />
         </AuthenticatedLayout>
     );
 }

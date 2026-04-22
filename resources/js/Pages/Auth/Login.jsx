@@ -35,7 +35,7 @@ export default function Login({ status, canResetPassword }) {
         <div className="bg-slate-50 text-slate-900 font-body min-h-screen">
             <Head title="Login | LARIS POS" />
 
-            <div className="flex h-screen w-full">
+            <div className="flex min-h-screen w-full">
                 {/* Left Side: Visual & Brand Messaging */}
                 <section className="hidden lg:flex flex-col justify-between w-1/2 p-12 relative bg-gradient-to-br from-orange-400 to-orange-600 overflow-hidden">
                     <div className="absolute -top-24 -left-24 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
@@ -48,11 +48,11 @@ export default function Login({ status, canResetPassword }) {
                     </div>
 
                     <div className="relative z-10 flex flex-col items-center justify-center space-y-12">
-                        <div className="w-full max-w-lg aspect-square rounded-[32px] overflow-hidden shadow-2xl transform -rotate-2 hover:rotate-0 transition-transform duration-700 bg-white p-4">
+                        <div className="w-full max-w-lg aspect-square rounded-[32px] overflow-hidden shadow-2xl transform -rotate-2 hover:rotate-0 transition-all duration-700 bg-white/10 backdrop-blur-md p-8 border border-white/20">
                             <img
-                                alt="Tumbuh Bersama LARIS"
-                                className="w-full h-full object-cover rounded-[24px]"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5zs-saQ0370XBUlBozd7s0S4swvJGnNn51F5sYXLsCboxIC4cU49kndlF0Tft0njjibLYUD9DjFmOZJVMGM3fYHqze0XwoNFlWKysXdB81QhI9dYxDX8OHTorA3lnYX--IjVF5S3UUbGtAX0lu7WXksi9TrvSn7JG6Wxyfu1ZgMMk0hN1hX604XO6QGWbuKYM1NqJof2kHhEygwu2fyGffTl_qWkNZQAr2ePlV6gagD6FNhNg0y7FwWF71rjMchFgxFVBqYcoQik"
+                                alt="LARIS Logo"
+                                className="w-full h-full object-contain filter drop-shadow-2xl"
+                                src="/images/laris-logo-tranparent.png"
                             />
                         </div>
                         <div className="text-center max-w-md">
@@ -78,10 +78,12 @@ export default function Login({ status, canResetPassword }) {
                 {/* Right Side: Login Form */}
                 <main className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 md:p-24 bg-white">
                     <div className="w-full max-w-md space-y-8">
-                        <div className="lg:hidden text-center mb-8">
-                            <span className="font-headline font-black text-3xl tracking-tighter text-orange-600">
-                                LARIS
-                            </span>
+                        <div className="lg:hidden flex justify-center mb-10">
+                            <img 
+                                src="/images/laris-logo-tranparent.png" 
+                                alt="LARIS Logo" 
+                                className="h-16 w-auto object-contain"
+                            />
                         </div>
                         <header className="space-y-2">
                             <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">

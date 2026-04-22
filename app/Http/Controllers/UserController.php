@@ -9,10 +9,21 @@ use Inertia\Inertia;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = $request->input('per_page', 10);
+        $query = User::query();
+
+        if ($request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('email', 'like', '%' . $request->search . '%');
+            });
+        }
+
         return Inertia::render('Users/Index', [
-            'users' => User::all(),
+            'users' => $query->latest()->paginate($perPage)->withQueryString(),
+            'filters' => $request->only(['search', 'per_page']),
         ]);
     }
 

@@ -1,13 +1,16 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "@inertiajs/react";
 import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import PrimaryButton from "@/Components/PrimaryButton";
 import SecondaryButton from "@/Components/SecondaryButton";
+import ConfirmationModal from "@/Components/Molecules/ConfirmationModal";
+import { toast } from "sonner";
 
 export default function CustomerForm({ customer = null, onClose }) {
     const isEditing = !!customer;
+    const [showConfirm, setShowConfirm] = useState(false);
 
     const { data, setData, post, patch, processing, errors, reset } = useForm({
         name: customer?.name || "",
@@ -25,26 +28,44 @@ export default function CustomerForm({ customer = null, onClose }) {
         }
     }, [customer]);
 
-    const submit = (e) => {
+    const handleOpenConfirm = (e) => {
         e.preventDefault();
+        setShowConfirm(true);
+    };
+
+    const handleConfirm = () => {
+        setShowConfirm(false);
+        const toastId = isEditing ? "update-customer" : "create-customer";
+
         if (isEditing) {
             patch(route("customers.update", customer.id), {
+                onStart: () => toast.loading("Memperbarui data pelanggan...", { id: toastId }),
                 onSuccess: () => {
+                    toast.success("Data pelanggan berhasil diperbarui!", { id: toastId });
                     onClose();
                 },
+                onError: () => {
+                    toast.error("Gagal memperbarui data pelanggan.", { id: toastId });
+                }
             });
         } else {
             post(route("customers.store"), {
+                onStart: () => toast.loading("Menyimpan data pelanggan...", { id: toastId }),
                 onSuccess: () => {
+                    toast.success("Pelanggan berhasil ditambahkan!", { id: toastId });
                     reset();
                     onClose();
                 },
+                onError: () => {
+                    toast.error("Gagal menyimpan data pelanggan.", { id: toastId });
+                }
             });
         }
     };
 
     return (
-        <form onSubmit={submit} className="p-6">
+        <>
+            <form onSubmit={handleOpenConfirm} className="p-6">
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-black text-slate-800">
                     {isEditing ? "Edit Pelanggan" : "Tambah Pelanggan Baru"}
@@ -95,6 +116,21 @@ export default function CustomerForm({ customer = null, onClose }) {
                     {processing ? "Menyimpan..." : "Simpan Pelanggan"}
                 </PrimaryButton>
             </div>
-        </form>
+            </form>
+
+            <ConfirmationModal
+                show={showConfirm}
+                onClose={() => setShowConfirm(false)}
+                onConfirm={handleConfirm}
+                title={isEditing ? "Update Pelanggan?" : "Simpan Pelanggan Baru?"}
+                message={isEditing 
+                    ? "Apakah Anda yakin ingin menyimpan perubahan pada data pelanggan ini?" 
+                    : "Apakah Anda yakin data pelanggan yang dimasukkan sudah benar?"
+                }
+                type="info"
+                confirmLabel="Ya, Simpan"
+                cancelLabel="Batal"
+            />
+        </>
     );
 }

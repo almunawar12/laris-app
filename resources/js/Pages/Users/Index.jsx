@@ -65,16 +65,17 @@ export default function UserIndex({ auth, users, filters }) {
 
     const handleConfirmDelete = () => {
         if (!deleteId) return;
+        const toastId = "delete-user";
 
         router.delete(route("users.destroy", deleteId), {
-            onStart: () => toast.loading("Menghapus user..."),
+            onStart: () => toast.loading("Menghapus user...", { id: toastId }),
             onSuccess: () => {
-                toast.success("User berhasil dihapus");
+                toast.success("User berhasil dihapus", { id: toastId });
                 setShowDeleteConfirm(false);
                 setDeleteId(null);
             },
             onError: (e) => {
-                toast.error(e.error || "Gagal menghapus user.");
+                toast.error(e.error || "Gagal menghapus user.", { id: toastId });
                 setShowDeleteConfirm(false);
             },
         });

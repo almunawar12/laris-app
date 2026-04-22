@@ -61,16 +61,17 @@ export default function CustomerIndex({ auth, customers, filters }) {
 
     const handleConfirmDelete = () => {
         if (!deleteId) return;
+        const toastId = "delete-customer";
 
         router.delete(route("customers.destroy", deleteId), {
-            onStart: () => toast.loading("Menghapus pelanggan..."),
+            onStart: () => toast.loading("Menghapus pelanggan...", { id: toastId }),
             onSuccess: () => {
-                toast.success("Pelanggan berhasil dihapus");
+                toast.success("Pelanggan berhasil dihapus", { id: toastId });
                 setShowDeleteConfirm(false);
                 setDeleteId(null);
             },
             onError: () => {
-                toast.error("Gagal menghapus pelanggan.");
+                toast.error("Gagal menghapus pelanggan.", { id: toastId });
                 setShowDeleteConfirm(false);
             },
         });

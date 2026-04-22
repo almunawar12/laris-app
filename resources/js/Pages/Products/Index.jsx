@@ -61,16 +61,17 @@ export default function ProductIndex({ auth, products, categories, filters }) {
 
     const handleConfirmDelete = () => {
         if (!deleteId) return;
+        const toastId = "delete-product";
 
         router.delete(route("products.destroy", deleteId), {
-            onStart: () => toast.loading("Menghapus produk..."),
+            onStart: () => toast.loading("Menghapus produk...", { id: toastId }),
             onSuccess: () => {
-                toast.success("Produk berhasil dihapus");
+                toast.success("Produk berhasil dihapus", { id: toastId });
                 setShowDeleteConfirm(false);
                 setDeleteId(null);
             },
             onError: () => {
-                toast.error("Gagal menghapus produk.");
+                toast.error("Gagal menghapus produk.", { id: toastId });
                 setShowDeleteConfirm(false);
             },
         });

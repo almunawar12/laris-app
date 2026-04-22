@@ -61,16 +61,17 @@ export default function CategoryIndex({ auth, categories, filters }) {
 
     const handleConfirmDelete = () => {
         if (!deleteId) return;
+        const toastId = "delete-category";
 
         router.delete(route("categories.destroy", deleteId), {
-            onStart: () => toast.loading("Menghapus kategori..."),
+            onStart: () => toast.loading("Menghapus kategori...", { id: toastId }),
             onSuccess: () => {
-                toast.success("Kategori berhasil dihapus");
+                toast.success("Kategori berhasil dihapus", { id: toastId });
                 setShowDeleteConfirm(false);
                 setDeleteId(null);
             },
             onError: () => {
-                toast.error("Gagal menghapus kategori. Pastikan tidak ada produk yang terkait dengan kategori ini.");
+                toast.error("Gagal menghapus kategori. Pastikan tidak ada produk yang terkait dengan kategori ini.", { id: toastId });
                 setShowDeleteConfirm(false);
             },
         });

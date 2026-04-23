@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\POSController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -49,6 +50,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
         Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
         Route::delete('/settings/logo', [SettingController::class, 'removeLogo'])->name('settings.logo.remove');
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     });
 
     // Kasir only

@@ -64,19 +64,32 @@ export default function Sidebar({
 
                 <nav className="flex flex-col gap-1 overflow-y-auto">
                     {user.role === "admin" && (
-                        <Link
-                            href={route("dashboard")}
-                            className={`font-semibold rounded-xl px-4 py-3 flex items-center gap-3 active:scale-95 transition-transform ${
-                                route().current("dashboard")
-                                    ? "bg-primary-500 text-white shadow-lg shadow-primary-500/30"
-                                    : "text-primary-800 hover:bg-primary-200"
-                            }`}
-                        >
-                            <span className="material-symbols-outlined text-xl">
-                                dashboard
-                            </span>
-                            <span className="text-sm">Dashboard</span>
-                        </Link>
+                        <>
+                            <Link
+                                href={route("dashboard")}
+                                className={`font-semibold rounded-xl px-4 py-3 flex items-center gap-3 active:scale-95 transition-transform ${
+                                    route().current("dashboard")
+                                        ? "bg-primary-500 text-white shadow-lg shadow-primary-500/30"
+                                        : "text-primary-800 hover:bg-primary-200"
+                                }`}
+                            >
+                                <span className="material-symbols-outlined text-xl">
+                                    dashboard
+                                </span>
+                                <span className="text-sm">Dashboard</span>
+                            </Link>
+                            <Link
+                                href={route("reports.index")}
+                                className={`font-medium rounded-xl px-4 py-3 flex items-center gap-3 active:scale-95 transition-transform ${
+                                    route().current("reports.*")
+                                        ? "bg-primary-500 text-white shadow-lg shadow-primary-500/30"
+                                        : "text-primary-800 hover:bg-primary-200"
+                                }`}
+                            >
+                                <span className="material-symbols-outlined text-xl">bar_chart</span>
+                                <span className="text-sm">Laporan</span>
+                            </Link>
+                        </>
                     )}
 
                     {user.role === "kasir" && (

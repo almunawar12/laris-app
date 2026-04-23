@@ -1,14 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, router } from "@inertiajs/react";
 
 const fmt = (n) => new Intl.NumberFormat("id-ID").format(n ?? 0);
-const fmtDate = (d) =>
-    new Date(d).toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    });
+const fmtDate = (d) => {
+    const safe = new Date(String(d).replace(/-/g, "/"));
+    return safe.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+};
 
 const TABS = [
     { key: "penjualan", label: "Penjualan", icon: "bar_chart" },
@@ -25,20 +23,20 @@ const PRESETS = [
 function getPresetDates(key) {
     const now = new Date();
     const pad = (n) => String(n).padStart(2, "0");
-    const fmt = (d) =>
+    const toISO = (d) =>
         `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     if (key === "today") {
-        const t = fmt(now);
+        const t = toISO(now);
         return { date_from: t, date_to: t };
     }
     if (key === "7days") {
         const from = new Date(now);
         from.setDate(now.getDate() - 6);
-        return { date_from: fmt(from), date_to: fmt(now) };
+        return { date_from: toISO(from), date_to: toISO(now) };
     }
     // month
     const from = new Date(now.getFullYear(), now.getMonth(), 1);
-    return { date_from: fmt(from), date_to: fmt(now) };
+    return { date_from: toISO(from), date_to: toISO(now) };
 }
 
 export default function ReportsIndex({
@@ -54,6 +52,11 @@ export default function ReportsIndex({
     const [customFrom, setCustomFrom] = useState(date_from ?? "");
     const [customTo, setCustomTo] = useState(date_to ?? "");
 
+    useEffect(() => {
+        setCustomFrom(date_from ?? "");
+        setCustomTo(date_to ?? "");
+    }, [date_from, date_to]);
+
     const handlePreset = (key) => {
         const { date_from: df, date_to: dt } = getPresetDates(key);
         router.get(route("reports.index"), { date_from: df, date_to: dt });
@@ -61,6 +64,7 @@ export default function ReportsIndex({
 
     const handleApply = () => {
         if (!customFrom || !customTo) return;
+        if (customFrom > customTo) return;
         router.get(route("reports.index"), {
             date_from: customFrom,
             date_to: customTo,
@@ -230,10 +234,14 @@ export default function ReportsIndex({
 </html>`;
 
         const win = window.open("", "_blank", "width=900,height=700");
+        if (!win) {
+            alert("Pop-up diblokir browser. Izinkan pop-up untuk mengekspor PDF.");
+            return;
+        }
         win.document.write(html);
         win.document.close();
         win.focus();
-        setTimeout(() => win.print(), 300);
+        win.addEventListener("load", () => win.print());
     };
 
     // ── derived totals ────────────────────────────────────────────────────────
@@ -540,7 +548,7 @@ export default function ReportsIndex({
                                     ) : (
                                         (topProducts ?? []).map((row, i) => (
                                             <tr
-                                                key={row.name + i}
+                                                key={row.name}
                                                 className="hover:bg-slate-50 transition-colors"
                                             >
                                                 <td className="px-5 py-4 text-center">
@@ -601,7 +609,7 @@ export default function ReportsIndex({
                                     ) : (
                                         (perKasir ?? []).map((row, i) => (
                                             <tr
-                                                key={row.kasir + i}
+                                                key={row.kasir}
                                                 className="hover:bg-slate-50 transition-colors"
                                             >
                                                 <td className="px-5 py-4">

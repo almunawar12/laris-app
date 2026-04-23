@@ -241,7 +241,7 @@ export default function ReportsIndex({
         win.document.write(html);
         win.document.close();
         win.focus();
-        win.addEventListener("load", () => win.print());
+        win.print();
     };
 
     // ── derived totals ────────────────────────────────────────────────────────

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Transaction;
 use Carbon\Carbon;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
@@ -27,25 +26,35 @@ class ReportController extends Controller
             ? Carbon::parse($request->input('date_to'))->endOfDay()
             : Carbon::now()->endOfDay();
 
-        // Summary — use transaction_date (indexed column)
-        $transactions = Transaction::with(['transactionItems', 'user'])
+        // Summary — aggregate in DB, no collection load
+        $summaryRow = DB::table('transactions')
+            ->selectRaw('
+                COALESCE(SUM(total_price), 0) as total_omzet,
+                COUNT(*) as total_transaksi,
+                COALESCE(SUM(CASE WHEN payment_method = "cash" THEN total_price ELSE 0 END), 0) as cash_omzet,
+                COALESCE(SUM(CASE WHEN payment_method = "qris" THEN total_price ELSE 0 END), 0) as qris_omzet,
+                COALESCE(SUM(CASE WHEN payment_method = "transfer" THEN total_price ELSE 0 END), 0) as transfer_omzet
+            ')
             ->whereBetween('transaction_date', [$dateFrom, $dateTo])
-            ->get();
+            ->first();
 
-        $totalOmzet    = $transactions->sum('total_price');
-        $totalTransaksi = $transactions->count();
-        $totalItems    = $transactions->flatMap->transactionItems->sum('quantity');
-        $cashOmzet     = $transactions->where('payment_method', 'cash')->sum('total_price');
-        $qrisOmzet     = $transactions->where('payment_method', 'qris')->sum('total_price');
-        $transferOmzet = $transactions->where('payment_method', 'transfer')->sum('total_price');
+        $totalItems = (int) DB::table('transaction_items')
+            ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->whereBetween('transactions.transaction_date', [$dateFrom, $dateTo])
+            ->sum('transaction_items.quantity');
 
         // Daily breakdown — use transaction_date
         $daily = DB::table('transactions')
-            ->selectRaw('DATE(transaction_date) as date, SUM(total_price) as omzet, COUNT(*) as jumlah')
+            ->selectRaw('DATE(transaction_date) as date, CAST(SUM(total_price) AS DECIMAL(14,2)) as omzet, COUNT(*) as jumlah')
             ->whereBetween('transaction_date', [$dateFrom, $dateTo])
             ->groupByRaw('DATE(transaction_date)')
             ->orderBy('date')
-            ->get();
+            ->get()
+            ->map(fn ($r) => [
+                'date'   => $r->date,
+                'omzet'  => (float) $r->omzet,
+                'jumlah' => (int)   $r->jumlah,
+            ]);
 
         // Top products — filter by transaction_date
         $topProducts = DB::table('transaction_items')
@@ -77,12 +86,12 @@ class ReportController extends Controller
 
         return Inertia::render('Reports/Index', [
             'summary' => [
-                'total_omzet'      => $totalOmzet,
-                'total_transaksi'  => $totalTransaksi,
+                'total_omzet'      => (float) $summaryRow->total_omzet,
+                'total_transaksi'  => (int)   $summaryRow->total_transaksi,
                 'total_items'      => $totalItems,
-                'cash_omzet'       => $cashOmzet,
-                'qris_omzet'       => $qrisOmzet,
-                'transfer_omzet'   => $transferOmzet,
+                'cash_omzet'       => (float) $summaryRow->cash_omzet,
+                'qris_omzet'       => (float) $summaryRow->qris_omzet,
+                'transfer_omzet'   => (float) $summaryRow->transfer_omzet,
             ],
             'daily'       => $daily,
             'topProducts' => $topProducts,

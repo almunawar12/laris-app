@@ -329,7 +329,7 @@ export default function ReportsIndex({
                 {/* ── Summary cards (always visible) ── */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* Total Omzet */}
-                    <div className="bg-white rounded-2xl border border-slate-200 p-5 col-span-2 sm:col-span-1">
+                    <div className="bg-white rounded-2xl border border-slate-200 p-5">
                         <div className="flex items-center gap-3 mb-3">
                             <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
                                 <span className="material-symbols-outlined text-xl text-primary-600">
@@ -380,7 +380,7 @@ export default function ReportsIndex({
                     </div>
 
                     {/* Payment breakdown card */}
-                    <div className="bg-white rounded-2xl border border-slate-200 p-5 col-span-2 lg:col-span-1">
+                    <div className="bg-white rounded-2xl border border-slate-200 p-5">
                         <div className="flex items-center gap-3 mb-3">
                             <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
                                 <span className="material-symbols-outlined text-xl text-orange-500">

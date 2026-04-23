@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import ConfirmationModal from "@/Components/Molecules/ConfirmationModal";
 
-export default function AuthenticatedLayout({ header, children }) {
+export default function AuthenticatedLayout({ header, children, searchQuery, onSearchChange }) {
     const { auth, flash } = usePage().props;
     const user = auth.user;
 
@@ -65,7 +65,11 @@ export default function AuthenticatedLayout({ header, children }) {
 
             {/* Main Wrapper */}
             <div className="lg:ml-64 flex flex-col min-h-screen transition-all duration-300">
-                <Navbar setIsSidebarOpen={setIsSidebarOpen} />
+                <Navbar
+                    setIsSidebarOpen={setIsSidebarOpen}
+                    searchQuery={searchQuery}
+                    onSearchChange={onSearchChange}
+                />
 
                 {/* Content */}
                 <main className="flex-1 p-4 md:p-8">{children}</main>

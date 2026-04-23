@@ -10,7 +10,8 @@ export default function SearchableSelect({
     label,
     error,
     className = "",
-    disabled = false
+    disabled = false,
+    placement = "bottom",
 }) {
     const [query, setQuery] = useState('');
 
@@ -65,7 +66,7 @@ export default function SearchableSelect({
                         leaveTo="opacity-0 translate-y-1"
                         afterLeave={() => setQuery('')}
                     >
-                        <Combobox.Options className="absolute z-50 mt-2 max-h-60 w-full overflow-auto rounded-xl bg-white py-2 text-base shadow-2xl ring-1 ring-black/5 focus:outline-none sm:text-sm border border-slate-100">
+                        <Combobox.Options className={`absolute z-50 max-h-60 w-full overflow-auto rounded-xl bg-white py-2 text-base shadow-2xl ring-1 ring-black/5 focus:outline-none sm:text-sm border border-slate-100 ${placement === "top" ? "bottom-full mb-2" : "mt-2"}`}>
                             {filteredOptions.length === 0 && query !== '' ? (
                                 <div className="relative cursor-default select-none py-4 px-4 text-slate-500 text-center italic">
                                     Data tidak ditemukan.

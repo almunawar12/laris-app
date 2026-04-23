@@ -51,6 +51,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:kasir')->group(function () {
         Route::get('/pos', [POSController::class, 'index'])->name('pos.index');
         Route::post('/pos/checkout', [POSController::class, 'checkout'])->name('pos.checkout');
+        Route::post('/pos/customers', [POSController::class, 'storeCustomer'])->name('pos.customers.store');
         Route::get('/customers/create', [CustomerController::class, 'create'])->name('customers.create');
         Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
     });

@@ -1,4 +1,4 @@
-export default function Navbar({ setIsSidebarOpen }) {
+export default function Navbar({ setIsSidebarOpen, searchQuery, onSearchChange }) {
     return (
         <header className="sticky top-0 w-full z-30 bg-white/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-8 py-4 border-b border-slate-100">
             <div className="flex items-center gap-4 flex-1">
@@ -20,6 +20,9 @@ export default function Navbar({ setIsSidebarOpen }) {
                         className="w-full bg-slate-50 border-none rounded-xl py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary-500 transition-all"
                         placeholder="Cari transaksi atau produk..."
                         type="text"
+                        value={searchQuery ?? ""}
+                        onChange={(e) => onSearchChange?.(e.target.value)}
+                        readOnly={!onSearchChange}
                     />
                 </div>
             </div>

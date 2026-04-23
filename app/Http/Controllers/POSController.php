@@ -27,6 +27,18 @@ class POSController extends Controller
         ]);
     }
 
+    public function storeCustomer(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        Customer::create($validated);
+
+        return redirect()->route('pos.index')->with('success', 'Pelanggan berhasil ditambahkan.');
+    }
+
     public function checkout(Request $request)
     {
         $validated = $request->validate([

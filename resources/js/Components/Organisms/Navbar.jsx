@@ -1,4 +1,8 @@
+import { usePage } from "@inertiajs/react";
+
 export default function Navbar({ setIsSidebarOpen, searchQuery, onSearchChange }) {
+    const { appSettings } = usePage().props;
+
     return (
         <header className="sticky top-0 w-full z-30 bg-white/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-8 py-4 border-b border-slate-100">
             <div className="flex items-center gap-4 flex-1">
@@ -37,7 +41,7 @@ export default function Navbar({ setIsSidebarOpen, searchQuery, onSearchChange }
                 <div className="flex items-center gap-3">
                     <div className="text-right hidden sm:block">
                         <p className="text-sm font-bold text-slate-900">
-                            Kedai UMK Laris
+                            {appSettings?.store_name ?? "Kedai UMK Laris"}
                         </p>
                         <div className="flex items-center justify-end gap-1">
                             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
@@ -46,10 +50,18 @@ export default function Navbar({ setIsSidebarOpen, searchQuery, onSearchChange }
                             </p>
                         </div>
                     </div>
-                    <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center text-primary-600 shadow-sm border border-primary-100">
-                        <span className="material-symbols-outlined text-2xl">
-                            store
-                        </span>
+                    <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center text-primary-600 shadow-sm border border-primary-100 overflow-hidden">
+                        {appSettings?.logo_url ? (
+                            <img
+                                src={appSettings.logo_url}
+                                alt="Logo"
+                                className="w-full h-full object-contain p-1"
+                            />
+                        ) : (
+                            <span className="material-symbols-outlined text-2xl">
+                                store
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>

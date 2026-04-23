@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { usePage } from "@inertiajs/react";
 
 export default function Sidebar({
     user,
@@ -6,6 +7,8 @@ export default function Sidebar({
     setIsSidebarOpen,
     onLogoutClick,
 }) {
+    const { appSettings } = usePage().props;
+
     return (
         <>
             {/* Sidebar Overlay for Mobile */}
@@ -24,16 +27,24 @@ export default function Sidebar({
             >
                 <div className="flex items-center justify-between mb-8 px-2">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 overflow-hidden flex items-center justify-center">
-                            <img 
-                                src="/images/laris-logo-tranparent.png" 
-                                alt="Logo" 
-                                className="w-full h-full object-contain"
-                            />
+                        <div className="w-10 h-10 overflow-hidden flex items-center justify-center rounded-xl bg-primary-200/50">
+                            {appSettings?.logo_url ? (
+                                <img
+                                    src={appSettings.logo_url}
+                                    alt="Logo"
+                                    className="w-full h-full object-contain"
+                                />
+                            ) : (
+                                <img
+                                    src="/images/laris-logo-tranparent.png"
+                                    alt="Logo"
+                                    className="w-full h-full object-contain"
+                                />
+                            )}
                         </div>
                         <div>
                             <h1 className="font-black text-lg tracking-tight text-primary-800 leading-none">
-                                LARIS
+                                {appSettings?.store_name ?? "LARIS"}
                             </h1>
                             <p className="text-[10px] font-bold text-primary-600/70 tracking-wider">
                                 Smart POS UMKM
@@ -154,6 +165,20 @@ export default function Sidebar({
                                     person
                                 </span>
                                 <span className="text-sm">Pelanggan</span>
+                            </Link>
+
+                            <Link
+                                href={route("settings.index")}
+                                className={`font-medium px-4 py-3 flex items-center gap-3 rounded-xl transition-all duration-200 active:scale-95 ${
+                                    route().current("settings.*")
+                                        ? "bg-primary-500 text-white shadow-lg shadow-primary-500/30"
+                                        : "text-primary-800 hover:bg-primary-200"
+                                }`}
+                            >
+                                <span className="material-symbols-outlined text-xl">
+                                    settings
+                                </span>
+                                <span className="text-sm">Pengaturan</span>
                             </Link>
                         </>
                     )}

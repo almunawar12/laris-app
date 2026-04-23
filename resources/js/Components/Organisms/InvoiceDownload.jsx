@@ -1,4 +1,7 @@
+import { usePage } from "@inertiajs/react";
+
 export default function InvoiceDownload({ transaction }) {
+    const { appSettings } = usePage().props;
     const fmt = (n) => new Intl.NumberFormat("id-ID").format(n);
     const fmtDate = (d) =>
         new Date(d).toLocaleDateString("id-ID", {
@@ -8,6 +11,11 @@ export default function InvoiceDownload({ transaction }) {
             hour: "2-digit",
             minute: "2-digit",
         });
+
+    const storeName = appSettings?.store_name ?? "Kedai UMK Laris";
+    const storeAddress = appSettings?.store_address ?? "";
+    const storePhone = appSettings?.store_phone ?? "";
+    const logoUrl = appSettings?.logo_url ?? null;
 
     const handlePrint = () => {
         const items = transaction.transaction_items ?? transaction.transactionItems ?? [];
@@ -34,6 +42,7 @@ export default function InvoiceDownload({ transaction }) {
   .total-row td { font-size: 14px; font-weight: 900; padding-top: 6px; }
   .footer { margin-top: 16px; font-size: 10px; color: #94a3b8; }
   .badge { display: inline-block; background: #dcfce7; color: #16a34a; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .store-logo { width: 64px; height: 64px; object-fit: contain; margin: 0 auto 8px; display: block; }
   @media print {
     body { padding: 0; }
     button { display: none; }
@@ -42,8 +51,11 @@ export default function InvoiceDownload({ transaction }) {
 </head>
 <body>
 <div class="center">
-  <div class="store-name">KEDAI UMK LARIS</div>
-  <div class="invoice-no">${transaction.invoice_code}</div>
+  ${logoUrl ? `<img src="${logoUrl}" alt="Logo" class="store-logo" />` : ""}
+  <div class="store-name">${storeName.toUpperCase()}</div>
+  ${storeAddress ? `<div style="font-size:10px;color:#64748b;margin-top:2px;">${storeAddress}</div>` : ""}
+  ${storePhone ? `<div style="font-size:10px;color:#64748b;">Telp: ${storePhone}</div>` : ""}
+  <div class="invoice-no" style="margin-top:6px;">${transaction.invoice_code}</div>
   <div style="font-size:10px;color:#94a3b8;margin-top:4px;">${fmtDate(transaction.transaction_date ?? transaction.created_at)}</div>
 </div>
 

@@ -8,6 +8,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\POSController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SettingController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -45,6 +46,9 @@ Route::middleware('auth')->group(function () {
         Route::resource('categories', CategoryController::class)->except(['index']);
         Route::resource('customers', CustomerController::class)->except(['index']);
         Route::resource('transactions', TransactionController::class)->only(['destroy']);
+        Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+        Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
+        Route::delete('/settings/logo', [SettingController::class, 'removeLogo'])->name('settings.logo.remove');
     });
 
     // Kasir only

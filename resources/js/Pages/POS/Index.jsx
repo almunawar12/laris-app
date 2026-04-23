@@ -11,6 +11,7 @@ export default function POSIndex({ auth, products, categories, customers }) {
     const [cart, setCart] = useState([]);
     const [showAddCustomer, setShowAddCustomer] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [showMobileCart, setShowMobileCart] = useState(false);
 
     const { data, setData, post, processing, reset } = useForm({
         customer_id: "",
@@ -160,9 +161,9 @@ export default function POSIndex({ auth, products, categories, customers }) {
         >
             <Head title="POS - Kasir" />
 
-            <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-160px)]">
+            <div className="flex flex-col lg:flex-row gap-6 lg:h-[calc(100vh-160px)] pb-24 lg:pb-0">
                 {/* Product Selection Section */}
-                <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+                <div className="flex-1 flex flex-col gap-4 lg:overflow-hidden">
                     <div className="flex flex-col md:flex-row gap-4">
                         <div className="flex gap-2 overflow-x-auto pb-2 min-w-0">
                             <button
@@ -191,7 +192,7 @@ export default function POSIndex({ auth, products, categories, customers }) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 overflow-y-auto pr-2">
+                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 lg:overflow-y-auto lg:pr-2">
                         {filteredProducts.map((product) => (
                             <div
                                 key={product.id}
@@ -220,8 +221,8 @@ export default function POSIndex({ auth, products, categories, customers }) {
                     </div>
                 </div>
 
-                {/* Cart Section */}
-                <div className="w-full lg:w-96 bg-white rounded-2xl border border-slate-200 flex flex-col shadow-sm overflow-hidden">
+                {/* Cart Section — desktop only */}
+                <div className="hidden lg:flex w-96 bg-white rounded-2xl border border-slate-200 flex-col shadow-sm overflow-hidden">
                     <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                         <h2 className="font-black text-slate-800">Keranjang</h2>
                         <span className="bg-primary-100 text-primary-700 px-2 py-1 rounded-lg text-xs font-bold">
@@ -241,56 +242,19 @@ export default function POSIndex({ auth, products, categories, customers }) {
                             </div>
                         ) : (
                             cart.map((item) => (
-                                <div
-                                    key={item.product_id}
-                                    className="flex gap-3"
-                                >
+                                <div key={item.product_id} className="flex gap-3">
                                     <div className="flex-1">
-                                        <h4 className="text-sm font-bold text-slate-800 truncate">
-                                            {item.name}
-                                        </h4>
+                                        <h4 className="text-sm font-bold text-slate-800 truncate">{item.name}</h4>
                                         <p className="text-xs text-slate-500">
-                                            Rp{" "}
-                                            {new Intl.NumberFormat(
-                                                "id-ID",
-                                            ).format(item.price)}
+                                            Rp {new Intl.NumberFormat("id-ID").format(item.price)}
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() =>
-                                                updateQuantity(
-                                                    item.product_id,
-                                                    -1,
-                                                )
-                                            }
-                                            className="w-6 h-6 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50"
-                                        >
-                                            -
-                                        </button>
-                                        <span className="text-sm font-bold w-4 text-center">
-                                            {item.quantity}
-                                        </span>
-                                        <button
-                                            onClick={() =>
-                                                updateQuantity(
-                                                    item.product_id,
-                                                    1,
-                                                )
-                                            }
-                                            className="w-6 h-6 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50"
-                                        >
-                                            +
-                                        </button>
-                                        <button
-                                            onClick={() =>
-                                                removeFromCart(item.product_id)
-                                            }
-                                            className="ml-2 text-red-400 hover:text-red-600"
-                                        >
-                                            <span className="material-symbols-outlined text-sm">
-                                                delete
-                                            </span>
+                                        <button onClick={() => updateQuantity(item.product_id, -1)} className="w-6 h-6 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50">-</button>
+                                        <span className="text-sm font-bold w-4 text-center">{item.quantity}</span>
+                                        <button onClick={() => updateQuantity(item.product_id, 1)} className="w-6 h-6 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50">+</button>
+                                        <button onClick={() => removeFromCart(item.product_id)} className="ml-2 text-red-400 hover:text-red-600">
+                                            <span className="material-symbols-outlined text-sm">delete</span>
                                         </button>
                                     </div>
                                 </div>
@@ -300,46 +264,28 @@ export default function POSIndex({ auth, products, categories, customers }) {
 
                     <div className="p-4 bg-slate-50 border-t border-slate-100 space-y-3">
                         <div className="flex justify-between items-center">
-                            <span className="text-slate-500 font-medium">
-                                Total
-                            </span>
+                            <span className="text-slate-500 font-medium">Total</span>
                             <span className="text-xl font-black text-slate-900 font-mono">
-                                Rp{" "}
-                                {new Intl.NumberFormat("id-ID").format(total)}
+                                Rp {new Intl.NumberFormat("id-ID").format(total)}
                             </span>
                         </div>
-
                         <div className="space-y-2 pt-2 border-t border-slate-200">
                             <div className="flex flex-col gap-1">
                                 <div className="flex items-center justify-between">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                        Pelanggan (Opsional)
-                                    </label>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowAddCustomer(true)}
-                                        className="flex items-center gap-1 text-[10px] font-bold text-primary-600 hover:text-primary-700 transition-colors"
-                                    >
-                                        <span className="material-symbols-outlined text-sm">
-                                            person_add
-                                        </span>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pelanggan (Opsional)</label>
+                                    <button type="button" onClick={() => setShowAddCustomer(true)} className="flex items-center gap-1 text-[10px] font-bold text-primary-600 hover:text-primary-700 transition-colors">
+                                        <span className="material-symbols-outlined text-sm">person_add</span>
                                         Tambah
                                     </button>
                                 </div>
                                 <SearchableSelect
-                                    options={customers.map((c) => ({
-                                        value: c.id,
-                                        label: c.name,
-                                    }))}
+                                    options={customers.map((c) => ({ value: c.id, label: c.name }))}
                                     value={data.customer_id}
-                                    onChange={(val) =>
-                                        setData("customer_id", val)
-                                    }
+                                    onChange={(val) => setData("customer_id", val)}
                                     placeholder="Cari pelanggan..."
                                     placement="top"
                                 />
                             </div>
-
                             <button
                                 onClick={openPaymentModal}
                                 disabled={cart.length === 0}
@@ -349,6 +295,116 @@ export default function POSIndex({ auth, products, categories, customers }) {
                             </button>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            {/* Mobile Cart Overlay */}
+            {showMobileCart && (
+                <div className="fixed inset-0 z-50 lg:hidden flex items-end">
+                    <div
+                        className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+                        onClick={() => setShowMobileCart(false)}
+                    />
+                    <div className="relative w-full bg-white rounded-t-3xl shadow-2xl flex flex-col max-h-[90vh]">
+                        <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-3xl">
+                            <h2 className="font-black text-slate-800">Keranjang</h2>
+                            <div className="flex items-center gap-3">
+                                <span className="bg-primary-100 text-primary-700 px-2 py-1 rounded-lg text-xs font-bold">
+                                    {cart.length} Item
+                                </span>
+                                <button onClick={() => setShowMobileCart(false)} className="text-slate-400 hover:text-slate-600">
+                                    <span className="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                            {cart.length === 0 ? (
+                                <div className="py-10 flex flex-col items-center justify-center text-slate-400 gap-2 opacity-60">
+                                    <span className="material-symbols-outlined text-4xl">shopping_basket</span>
+                                    <p className="text-xs font-medium">Keranjang masih kosong</p>
+                                </div>
+                            ) : (
+                                cart.map((item) => (
+                                    <div key={item.product_id} className="flex gap-3">
+                                        <div className="flex-1">
+                                            <h4 className="text-sm font-bold text-slate-800 truncate">{item.name}</h4>
+                                            <p className="text-xs text-slate-500">
+                                                Rp {new Intl.NumberFormat("id-ID").format(item.price)}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button onClick={() => updateQuantity(item.product_id, -1)} className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50">-</button>
+                                            <span className="text-sm font-bold w-5 text-center">{item.quantity}</span>
+                                            <button onClick={() => updateQuantity(item.product_id, 1)} className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50">+</button>
+                                            <button onClick={() => removeFromCart(item.product_id)} className="ml-1 text-red-400 hover:text-red-600">
+                                                <span className="material-symbols-outlined text-sm">delete</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        <div className="p-4 bg-slate-50 border-t border-slate-100 space-y-3">
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-500 font-medium">Total</span>
+                                <span className="text-xl font-black text-slate-900 font-mono">
+                                    Rp {new Intl.NumberFormat("id-ID").format(total)}
+                                </span>
+                            </div>
+                            <div className="space-y-2 pt-2 border-t border-slate-200">
+                                <div className="flex flex-col gap-1">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pelanggan (Opsional)</label>
+                                        <button type="button" onClick={() => setShowAddCustomer(true)} className="flex items-center gap-1 text-[10px] font-bold text-primary-600 hover:text-primary-700 transition-colors">
+                                            <span className="material-symbols-outlined text-sm">person_add</span>
+                                            Tambah
+                                        </button>
+                                    </div>
+                                    <SearchableSelect
+                                        options={customers.map((c) => ({ value: c.id, label: c.name }))}
+                                        value={data.customer_id}
+                                        onChange={(val) => setData("customer_id", val)}
+                                        placeholder="Cari pelanggan..."
+                                        placement="top"
+                                    />
+                                </div>
+                                <button
+                                    onClick={openPaymentModal}
+                                    disabled={cart.length === 0}
+                                    className="w-full py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-300 text-white font-black rounded-xl shadow-lg shadow-primary-600/20 transition-all active:scale-95 mt-2"
+                                >
+                                    PROSES TRANSAKSI
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Mobile Sticky Bottom Cart Bar */}
+            <div className="fixed bottom-0 left-0 right-0 lg:hidden z-40 bg-white border-t border-slate-200 shadow-xl">
+                <div className="flex items-center gap-3 p-3">
+                    <button
+                        onClick={() => setShowMobileCart(true)}
+                        className="flex-1 flex items-center gap-3 bg-slate-50 hover:bg-slate-100 rounded-xl px-4 py-3 transition-colors"
+                    >
+                        <span className="bg-primary-100 text-primary-700 px-2 py-0.5 rounded-lg text-xs font-bold shrink-0">
+                            {cart.length} Item
+                        </span>
+                        <span className="font-black text-slate-900 font-mono text-sm truncate">
+                            Rp {new Intl.NumberFormat("id-ID").format(total)}
+                        </span>
+                        <span className="material-symbols-outlined text-slate-400 text-lg ml-auto shrink-0">expand_less</span>
+                    </button>
+                    <button
+                        onClick={openPaymentModal}
+                        disabled={cart.length === 0}
+                        className="py-3 px-5 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-300 text-white font-black rounded-xl shadow-lg shadow-primary-600/20 transition-all active:scale-95 text-sm shrink-0"
+                    >
+                        PROSES
+                    </button>
                 </div>
             </div>
 

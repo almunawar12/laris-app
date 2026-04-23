@@ -9,8 +9,8 @@ export default function DashboardTemplate({ auth, stats, children }) {
         <AuthenticatedLayout user={auth.user}>
             <Head title="Dashboard" />
             <div className="bg-slate-50 min-h-screen">
-                <main className="p-8 space-y-8 max-w-7xl mx-auto">
-                    <div className="flex justify-between items-end">
+                <main className="p-4 md:p-6 lg:p-8 space-y-6 lg:space-y-8 max-w-7xl mx-auto">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
                         <div>
                             <Heading level={2} className="text-slate-900">
                                 Ringkasan Performa
@@ -20,7 +20,7 @@ export default function DashboardTemplate({ auth, stats, children }) {
                                 real-time.
                             </p>
                         </div>
-                        <button className="bg-orange-600 hover:opacity-90 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-orange-600/20">
+                        <button className="w-full sm:w-auto bg-orange-600 hover:opacity-90 text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-orange-600/20">
                             <span className="material-symbols-outlined">
                                 add_shopping_cart
                             </span>
